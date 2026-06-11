@@ -1,0 +1,132 @@
+<h2 class="section">My Deliveries</h2>
+<p class="section-sub">Track every item you are sending or carrying. Status updates in real-time as transit milestones are reached.</p>
+
+<!-- Tab Navigation -->
+<div class="tabs-container">
+  <button 
+    class="tab-btn" 
+    [class.active]="activeTab() === 'shipments'" 
+    (click)="activeTab.set('shipments')">
+    My Shipments 
+    <span class="count-badge" *ngIf="shipments().length > 0">({{ shipments().length }})</span>
+  </button>
+  <button 
+    class="tab-btn" 
+    [class.active]="activeTab() === 'carries'" 
+    (click)="activeTab.set('carries')">
+    My Carries (Driver View)
+    <span class="count-badge" *ngIf="carries().length > 0">({{ carries().length }})</span>
+  </button>
+</div>
+
+<!-- Loading indicator -->
+@if (isLoading()) {
+  <div class="loading-state">
+    <div class="spinner"></div>
+    <p>Retrieving deliveries record...</p>
+  </div>
+} @else {
+  <!-- SHIPMENTS TAB CONTENT -->
+  @if (activeTab() === 'shipments') {
+    <div class="bookings-list">
+      @if (shipments().length === 0) {
+        <div class="empty">
+          Nothing on the road yet. Get a quote and request a spot with a traveller — your deliveries will appear here.
+        </div>
+      } @else {
+        @for (b of shipments(); track b.id) {
+          <div class="booking-card">
+            <div class="booking-header">
+              <div class="title-section">
+                <strong>{{ b.item }}</strong>
+                <span class="route-chip mini-route">
+                  {{ getRouteCode(b.trip?.from_city || '') }} 
+                  <span class="arrow">→</span> 
+                  {{ getRouteCode(b.trip?.to_city || '') }}
+                </span>
+                <span class="status-badge" [ngClass]="statusClasses[b.status]">{{ statusLabels[b.status] }}</span>
+              </div>
+              <div class="price-section">${{ b.price }}</div>
+            </div>
+
+            <div class="booking-body">
+              <div class="meta">
+                Size: <strong>{{ getSizeName(b.size) }}</strong> · 
+                Driver: <strong>{{ b.trip?.driver?.name }} ({{ b.trip?.vehicle }})</strong> · 
+                Departs: <strong>{{ getFriendlyDate(b.trip?.date) }}</strong>
+              </div>
+              @if (b.status !== -1) {
+                <div class="progress">
+                  <span [style.width.%]="getProgressPercentage(b.status)"></span>
+                </div>
+              }
+            </div>
+            
+            <div class="booking-footer" *ngIf="b.status === 0">
+              <button class="btn btn-ghost cancel-btn" (click)="updateStatus(b, -1)">Cancel Request</button>
+            </div>
+          </div>
+        }
+      }
+    </div>
+  }
+
+  <!-- CARRIES TAB CONTENT -->
+  @if (activeTab() === 'carries') {
+    <div class="bookings-list">
+      @if (carries().length === 0) {
+        <div class="empty">
+          No carry requests received yet. Post your upcoming trips and wait for senders to request a spot.
+        </div>
+      } @else {
+        @for (b of carries(); track b.id) {
+          <div class="booking-card">
+            <div class="booking-header">
+              <div class="title-section">
+                <strong>{{ b.item }}</strong>
+                <span class="route-chip mini-route">
+                  {{ getRouteCode(b.trip?.from_city || '') }} 
+                  <span class="arrow">→</span> 
+                  {{ getRouteCode(b.trip?.to_city || '') }}
+                </span>
+                <span class="status-badge" [ngClass]="statusClasses[b.status]">{{ statusLabels[b.status] }}</span>
+              </div>
+              <div class="price-section">${{ b.price }}</div>
+            </div>
+
+            <div class="booking-body">
+              <div class="meta">
+                Size: <strong>{{ getSizeName(b.size) }}</strong> · 
+                Sender: <strong>{{ b.sender?.name }}</strong> · 
+                Departs: <strong>{{ getFriendlyDate(b.trip?.date) }}</strong>
+              </div>
+              @if (b.status !== -1) {
+                <div class="progress">
+                  <span [style.width.%]="getProgressPercentage(b.status)"></span>
+                </div>
+              }
+            </div>
+
+            <div class="booking-footer">
+              <!-- Actions based on status -->
+              @if (b.status === 0) {
+                <div class="action-buttons">
+                  <button class="btn btn-ghost decline-btn" (click)="updateStatus(b, -1)">Decline</button>
+                  <button class="btn btn-green accept-btn" (click)="updateStatus(b, 1)">Accept Request</button>
+                </div>
+              } @else if (b.status === 1) {
+                <button class="btn btn-green action-btn" (click)="updateStatus(b, 2)">Mark as Picked Up</button>
+              } @else if (b.status === 2) {
+                <button class="btn btn-green action-btn" (click)="updateStatus(b, 3)">Mark as Delivered</button>
+              } @else if (b.status === 3) {
+                <span class="completion-msg">✓ Delivery Completed</span>
+              } @else if (b.status === -1) {
+                <span class="declined-msg">Decline processed</span>
+              }
+            </div>
+          </div>
+        }
+      }
+    </div>
+  }
+}

@@ -1,0 +1,105 @@
+<h2 class="section">Post your trip</h2>
+<p class="section-sub">Driving interstate soon? List your route and spare space. Senders along the way will request to add their goods to your trip — you approve who and what you carry.</p>
+
+<div class="card">
+  <div class="form-grid">
+    <div class="field">
+      <label for="dVehicle">Vehicle</label>
+      <select id="dVehicle" name="dVehicle" [(ngModel)]="dVehicle">
+        @for (v of vehicles; track v) {
+          <option [value]="v">{{ v }}</option>
+        }
+      </select>
+    </div>
+
+    <div class="field">
+      <label for="dSpace">Largest item you can take</label>
+      <select id="dSpace" name="dSpace" [(ngModel)]="dSpace" (change)="updateEarningsEstimate()">
+        @for (opt of sizeOptions; track opt.value) {
+          <option [value]="opt.value">{{ opt.label }}</option>
+        }
+      </select>
+    </div>
+
+    <div class="field">
+      <label for="dFrom">Departing from</label>
+      <select id="dFrom" name="dFrom" [(ngModel)]="dFrom" (change)="updateEarningsEstimate()">
+        @for (city of cities; track city) {
+          <option [value]="city">{{ city }}</option>
+        }
+      </select>
+    </div>
+
+    <div class="field">
+      <label for="dTo">Heading to</label>
+      <select id="dTo" name="dTo" [(ngModel)]="dTo" (change)="updateEarningsEstimate()">
+        @for (city of cities; track city) {
+          <option [value]="city">{{ city }}</option>
+        }
+      </select>
+    </div>
+
+    <div class="field">
+      <label for="dDate">Departure date</label>
+      <input type="date" id="dDate" name="dDate" [(ngModel)]="dDate">
+    </div>
+
+    <div class="field full">
+      <label for="dNotes">Notes for senders (optional)</label>
+      <textarea 
+        id="dNotes" 
+        name="dNotes" 
+        [(ngModel)]="dNotes" 
+        rows="2" 
+        placeholder="e.g. Leaving early morning, can detour up to 15 min from the Hume, no fragile glassware">
+      </textarea>
+    </div>
+  </div>
+
+  <div class="notice">
+    Estimated earnings appear after you choose a route — drivers keep 80% of each fare. You'll need a verified ID and licence before your first carry.
+  </div>
+
+  <div class="actions-panel">
+    <button class="btn btn-green" (click)="postTrip()" [disabled]="isPosting()">
+      {{ isPosting() ? 'Posting...' : 'Post this trip' }}
+    </button>
+    <span class="earn-estimate" *ngIf="earnEstimate()">{{ earnEstimate() }}</span>
+  </div>
+</div>
+
+<!-- My Trips History Section -->
+<h2 class="section second-section">My active trips</h2>
+<p class="section-sub">View trips you have currently posted for carrying parcels.</p>
+
+<div class="my-trips-list">
+  @if (isLoadingMyTrips()) {
+    <div class="loading-state">
+      <div class="spinner"></div>
+      <p>Loading your trips...</p>
+    </div>
+  } @else {
+    @if (myTrips().length === 0) {
+      <div class="empty">
+        You haven't posted any trips yet. Fill in the form above to post your first trip!
+      </div>
+    } @else {
+      @for (trip of myTrips(); track trip.id) {
+        <article class="my-trip-card">
+          <div class="my-trip-route">
+            <span class="route-badge">{{ trip.from_city }} → {{ trip.to_city }}</span>
+            <span class="trip-date">{{ getFriendlyDate(trip.date) }}</span>
+          </div>
+          <div class="my-trip-meta">
+            <span>Vehicle: <strong>{{ trip.vehicle }}</strong></span>
+            <span>Max Space: <strong>{{ getSizeShort(trip.space) }}</strong></span>
+            <span>Distance: <strong>{{ getRouteDistance(trip.from_city, trip.to_city) }} km</strong></span>
+          </div>
+          @if (trip.notes) {
+            <p class="my-trip-notes">"{{ trip.notes }}"</p>
+          }
+        </article>
+      }
+    }
+  }
+</div>

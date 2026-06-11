@@ -1,0 +1,104 @@
+<!-- Hero Section -->
+<section class="hero">
+  <div class="hero-inner">
+    <div>
+      <h1>Your goods ride with <em>travellers already going</em> interstate</h1>
+      <p class="lede">
+        Thousands of Australians drive between capitals every day with empty boots, back seats and trailers. 
+        RoadShare matches your parcel, furniture or freight with a verified traveller on that exact route — cheaper than couriers, faster than post.
+      </p>
+      <div class="hero-ctas">
+        <button class="btn btn-yellow" (click)="qCard.scrollIntoView({behavior:'smooth'})">Get an instant quote</button>
+        <button class="btn btn-ghost" routerLink="/drive">Earn while you drive</button>
+      </div>
+    </div>
+    <div class="signpost" aria-label="Popular routes and distances">
+      <div class="sign-title">Popular routes this week</div>
+      <div class="sign-rows">
+        @for (route of popularRoutes; track route.from + '-' + route.to) {
+          <div class="sign-row" (click)="onPopularRouteClick(route.from, route.to)" style="cursor: pointer;">
+            <span class="dest">
+              {{ getRouteCode(route.from) }} 
+              <span style="color:var(--reflect)">→</span> 
+              {{ getRouteCode(route.to) }}
+            </span>
+            <span>
+              <span class="km">{{ getRouteDistance(route.from, route.to) }} km</span>
+              <span class="price">from ${{ getRouteStartingPrice(route.from, route.to) }}</span>
+            </span>
+          </div>
+        }
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Content Area -->
+<div class="main-content">
+  <h2 class="section">Get a quote</h2>
+  <p class="section-sub">Tell us the route and the size of what you're sending. We'll estimate the price and show travellers heading that way.</p>
+
+  <div class="card" id="quoteCard" #qCard>
+    <div class="quote-grid">
+      <div class="field">
+        <label for="qFrom">From</label>
+        <select id="qFrom" name="qFrom" [(ngModel)]="qFrom">
+          @for (city of cities; track city) {
+            <option [value]="city">{{ city }}</option>
+          }
+        </select>
+      </div>
+      <div class="field">
+        <label for="qTo">To</label>
+        <select id="qTo" name="qTo" [(ngModel)]="qTo">
+          @for (city of cities; track city) {
+            <option [value]="city">{{ city }}</option>
+          }
+        </select>
+      </div>
+      <div class="field">
+        <label for="qSize">Item size</label>
+        <select id="qSize" name="qSize" [(ngModel)]="qSize">
+          @for (opt of sizeOptions; track opt.value) {
+            <option [value]="opt.value">{{ opt.label }}</option>
+          }
+        </select>
+      </div>
+      <div class="field">
+        <label for="qWhen">Needed by</label>
+        <input type="date" id="qWhen" name="qWhen" [(ngModel)]="qWhen">
+      </div>
+      <button class="btn btn-green" (click)="getQuote()">Quote</button>
+    </div>
+
+    <!-- Quote Result -->
+    @if (showResult()) {
+      <div class="quote-result show">
+        <div>
+          <div class="quote-price">${{ estimatedPrice() }}</div>
+          <div class="quote-meta">{{ quoteMeta() }}</div>
+        </div>
+        <button class="btn btn-yellow matching-trips-btn" (click)="seeMatchingTrips()">See matching trips →</button>
+      </div>
+    }
+  </div>
+
+  <h2 class="section">How it works</h2>
+  <div class="how">
+    <div class="step">
+      <div class="kicker">Senders</div>
+      <h3>Post once, get matched</h3>
+      <p>Describe your item and route. Verified travellers already driving that highway offer to carry it — you pick the price, date and driver that suits.</p>
+    </div>
+    <div class="step">
+      <div class="kicker">Travellers</div>
+      <h3>Fill your empty boot</h3>
+      <p>Post your trip before you leave. Carry a parcel from Melbourne to Sydney and cover your fuel — drivers keep 80% of every fare.</p>
+    </div>
+    <div class="step">
+      <div class="kicker">Both</div>
+      <h3>Protected door to door</h3>
+      <p>ID-verified members, photo proof at pickup and drop-off, live trip tracking, and cover up to $1,500 per item on every delivery.</p>
+    </div>
+  </div>
+</div>

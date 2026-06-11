@@ -1,0 +1,276 @@
+/* ---------- hero ---------- */
+.hero {
+  background: var(--green);
+  color: #fff;
+  padding: 56px 20px 72px;
+  position: relative;
+  overflow: hidden;
+  margin-left: calc(-50vw + 50%);
+  margin-right: calc(-50vw + 50%);
+  width: 100vw;
+}
+
+.hero::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 26px;
+  background: repeating-linear-gradient(90deg, var(--reflect) 0 48px, transparent 48px 84px);
+  opacity: .95;
+}
+
+.hero-inner {
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 0 20px;
+  display: grid;
+  grid-template-columns: 1.1fr .9fr;
+  gap: 48px;
+  align-items: center;
+}
+
+.hero h1 {
+  font-size: clamp(2rem, 4.5vw, 3.3rem);
+  font-weight: 900;
+  line-height: 1.08;
+  letter-spacing: -.5px;
+  text-transform: uppercase;
+}
+
+.hero h1 em {
+  font-style: normal;
+  color: var(--reflect);
+}
+
+.hero p.lede {
+  margin-top: 18px;
+  font-size: 1.1rem;
+  max-width: 46ch;
+  color: #DCEAE1;
+}
+
+.hero-ctas {
+  margin-top: 26px;
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+/* highway signpost */
+.signpost {
+  background: var(--green-deep);
+  border: 5px solid #fff;
+  border-radius: 16px;
+  padding: 22px 26px;
+  box-shadow: 0 18px 40px rgba(0, 0, 0, .28);
+  transform: rotate(-1.2deg);
+  transition: transform 0.2s ease-in-out;
+}
+
+.signpost:hover {
+  transform: rotate(0deg) scale(1.02);
+}
+
+.signpost .sign-title {
+  font-size: .75rem;
+  font-weight: 800;
+  letter-spacing: 2.5px;
+  text-transform: uppercase;
+  color: var(--reflect);
+  margin-bottom: 14px;
+}
+
+.sign-row {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 18px;
+  padding: 9px 0;
+  border-bottom: 1px solid rgba(255, 255, 255, .18);
+  transition: background-color 0.2s;
+}
+
+.sign-row:hover {
+  background-color: rgba(255, 255, 255, 0.05);
+}
+
+.sign-row:last-child {
+  border-bottom: none;
+}
+
+.sign-row .dest {
+  font-weight: 800;
+  font-size: 1.3rem;
+  text-transform: uppercase;
+  letter-spacing: .5px;
+}
+
+.sign-row .km {
+  font-family: 'Overpass Mono', monospace;
+  font-weight: 700;
+  font-size: 1.2rem;
+  color: var(--reflect);
+}
+
+.sign-row .price {
+  font-size: .8rem;
+  color: #BFD8CB;
+  margin-left: 8px;
+  font-weight: 600;
+}
+
+/* ---------- main content ---------- */
+.main-content {
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 0 20px 80px;
+}
+
+h2.section {
+  font-size: 1.5rem;
+  font-weight: 900;
+  text-transform: uppercase;
+  letter-spacing: .5px;
+  margin: 44px 0 6px;
+}
+
+p.section-sub {
+  color: var(--gravel);
+  margin-bottom: 22px;
+  max-width: 62ch;
+}
+
+/* ---------- quote card ---------- */
+.card {
+  background: #fff;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  padding: 26px;
+  box-shadow: 0 4px 12px rgba(32, 36, 31, 0.03);
+}
+
+.quote-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr) auto;
+  gap: 14px;
+  align-items: end;
+}
+
+.field label {
+  display: block;
+  font-size: .75rem;
+  font-weight: 800;
+  letter-spacing: 1.2px;
+  text-transform: uppercase;
+  color: var(--gravel);
+  margin-bottom: 6px;
+}
+
+.field select, .field input {
+  width: 100%;
+  padding: 11px 12px;
+  border: 1.5px solid var(--line);
+  border-radius: 9px;
+  background: #fff;
+  color: var(--bitumen);
+}
+
+.field select:focus, .field input:focus {
+  outline: 3px solid rgba(0, 112, 60, .25);
+  border-color: var(--green);
+}
+
+.quote-result {
+  margin-top: 20px;
+  display:none;
+  gap: 20px;
+  align-items: center;
+  flex-wrap: wrap;
+  background: var(--green-tint);
+  border: 1px solid #C4DCCE;
+  border-radius: 12px;
+  padding: 16px 20px;
+}
+
+.quote-result.show {
+  display: flex;
+}
+
+.quote-price {
+  font-family: 'Overpass Mono', monospace;
+  font-weight: 700;
+  font-size: 1.7rem;
+  color: var(--green-deep);
+}
+
+.quote-meta {
+  font-size: .9rem;
+  color: var(--gravel);
+}
+
+.matching-trips-btn {
+  margin-left: auto;
+}
+
+/* ---------- how it works ---------- */
+.how {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 16px;
+  margin-top: 8px;
+}
+
+.how .step {
+  background: #fff;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  padding: 22px;
+  box-shadow: 0 4px 12px rgba(32, 36, 31, 0.03);
+  transition: transform 0.2s;
+}
+
+.how .step:hover {
+  transform: translateY(-2px);
+}
+
+.step .kicker {
+  display: inline-block;
+  background: var(--reflect);
+  color: var(--bitumen);
+  font-weight: 900;
+  font-size: .72rem;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  padding: 4px 10px;
+  border-radius: 6px;
+  margin-bottom: 12px;
+}
+
+.step h3 {
+  font-size: 1.05rem;
+  font-weight: 800;
+  margin-bottom: 6px;
+}
+
+.step p {
+  font-size: .92rem;
+  color: var(--gravel);
+}
+
+@media (max-width: 880px) {
+  .hero-inner {
+    grid-template-columns: 1fr;
+    gap: 32px;
+  }
+  .signpost {
+    transform: none;
+  }
+  .quote-grid {
+    grid-template-columns: 1fr 1fr;
+  }
+  .how {
+    grid-template-columns: 1fr;
+  }
+}

@@ -1,0 +1,595 @@
+<!DOCTYPE html>
+<html lang="en-AU">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>RoadShare — Interstate goods transport, carried by travellers</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Overpass:wght@400;600;700;800;900&family=Overpass+Mono:wght@600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --green:#00703C;        /* AS1743 sign green */
+  --green-deep:#064E2C;
+  --green-tint:#E7F1EB;
+  --bitumen:#20241F;
+  --gravel:#6A7268;
+  --paper:#F5F6F3;
+  --white:#FFFFFF;
+  --reflect:#FFC72C;      /* warning-sign yellow */
+  --line:#D9DDD6;
+  --radius:14px;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{font-family:'Overpass',system-ui,sans-serif;background:var(--paper);color:var(--bitumen);line-height:1.55}
+button{font-family:inherit;cursor:pointer}
+input,select,textarea{font-family:inherit;font-size:1rem}
+
+/* ---------- header ---------- */
+header{position:sticky;top:0;z-index:50;background:var(--green);color:#fff;border-bottom:4px solid var(--reflect)}
+.header-inner{max-width:1100px;margin:0 auto;display:flex;align-items:center;gap:24px;padding:14px 20px}
+.logo{display:flex;align-items:center;gap:10px;font-weight:900;font-size:1.25rem;letter-spacing:.5px;text-transform:uppercase}
+.logo-shield{width:34px;height:38px;background:#fff;color:var(--green);display:grid;place-items:center;font-weight:900;font-size:.95rem;clip-path:polygon(0 0,100% 0,100% 70%,50% 100%,0 70%);padding-top:2px}
+nav{display:flex;gap:4px;margin-left:auto}
+nav button{background:transparent;border:2px solid transparent;color:#fff;font-weight:700;font-size:.9rem;padding:8px 14px;border-radius:8px;letter-spacing:.3px}
+nav button:hover{border-color:rgba(255,255,255,.5)}
+nav button.active{background:#fff;color:var(--green)}
+nav button:focus-visible{outline:3px solid var(--reflect);outline-offset:2px}
+
+/* ---------- hero ---------- */
+.hero{background:var(--green);color:#fff;padding:56px 20px 72px;position:relative;overflow:hidden}
+.hero::after{content:"";position:absolute;left:0;right:0;bottom:0;height:26px;
+  background:repeating-linear-gradient(90deg,var(--reflect) 0 48px,transparent 48px 84px);
+  opacity:.95}
+.hero-inner{max-width:1100px;margin:0 auto;display:grid;grid-template-columns:1.1fr .9fr;gap:48px;align-items:center}
+.hero h1{font-size:clamp(2rem,4.5vw,3.3rem);font-weight:900;line-height:1.08;letter-spacing:-.5px;text-transform:uppercase}
+.hero h1 em{font-style:normal;color:var(--reflect)}
+.hero p.lede{margin-top:18px;font-size:1.1rem;max-width:46ch;color:#DCEAE1}
+.hero-ctas{margin-top:26px;display:flex;gap:12px;flex-wrap:wrap}
+.btn{border:none;border-radius:10px;font-weight:800;font-size:1rem;padding:13px 22px;letter-spacing:.3px;transition:transform .12s ease}
+.btn:active{transform:translateY(1px)}
+.btn:focus-visible{outline:3px solid var(--reflect);outline-offset:2px}
+.btn-yellow{background:var(--reflect);color:var(--bitumen)}
+.btn-yellow:hover{background:#FFD45A}
+.btn-ghost{background:transparent;color:#fff;border:2px solid rgba(255,255,255,.7)}
+.btn-ghost:hover{border-color:#fff}
+.btn-green{background:var(--green);color:#fff}
+.btn-green:hover{background:var(--green-deep)}
+
+/* the signature: a stacked highway distance sign */
+.signpost{background:var(--green-deep);border:5px solid #fff;border-radius:16px;padding:22px 26px;box-shadow:0 18px 40px rgba(0,0,0,.28);transform:rotate(-1.2deg)}
+.signpost .sign-title{font-size:.75rem;font-weight:800;letter-spacing:2.5px;text-transform:uppercase;color:var(--reflect);margin-bottom:14px}
+.sign-row{display:flex;align-items:baseline;justify-content:space-between;gap:18px;padding:9px 0;border-bottom:1px solid rgba(255,255,255,.18)}
+.sign-row:last-child{border-bottom:none}
+.sign-row .dest{font-weight:800;font-size:1.3rem;text-transform:uppercase;letter-spacing:.5px}
+.sign-row .km{font-family:'Overpass Mono',monospace;font-weight:700;font-size:1.2rem;color:var(--reflect)}
+.sign-row .price{font-size:.8rem;color:#BFD8CB;margin-left:8px;font-weight:600}
+
+/* ---------- sections ---------- */
+main{max-width:1100px;margin:0 auto;padding:0 20px 80px}
+.screen{display:none;animation:fade .25s ease}
+.screen.active{display:block}
+@keyframes fade{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+@media (prefers-reduced-motion:reduce){.screen{animation:none}.btn{transition:none}}
+h2.section{font-size:1.5rem;font-weight:900;text-transform:uppercase;letter-spacing:.5px;margin:44px 0 6px}
+p.section-sub{color:var(--gravel);margin-bottom:22px;max-width:62ch}
+
+/* route chip — mini highway sign used everywhere */
+.route-chip{display:inline-flex;align-items:center;gap:8px;background:var(--green);color:#fff;border:2.5px solid #fff;outline:1.5px solid var(--green);border-radius:9px;padding:5px 12px;font-weight:800;text-transform:uppercase;font-size:.85rem;letter-spacing:.5px;box-shadow:0 2px 6px rgba(0,0,0,.15)}
+.route-chip .arrow{color:var(--reflect)}
+.route-chip .kms{font-family:'Overpass Mono',monospace;font-weight:700;color:var(--reflect);font-size:.8rem}
+
+/* ---------- quote card ---------- */
+.card{background:#fff;border:1px solid var(--line);border-radius:var(--radius);padding:26px}
+.quote-grid{display:grid;grid-template-columns:repeat(4,1fr) auto;gap:14px;align-items:end;margin-top:24px}
+.field label{display:block;font-size:.75rem;font-weight:800;letter-spacing:1.2px;text-transform:uppercase;color:var(--gravel);margin-bottom:6px}
+.field select,.field input,.field textarea{width:100%;padding:11px 12px;border:1.5px solid var(--line);border-radius:9px;background:#fff;color:var(--bitumen)}
+.field select:focus,.field input:focus,.field textarea:focus{outline:3px solid rgba(0,112,60,.25);border-color:var(--green)}
+.quote-result{margin-top:20px;display:none;gap:20px;align-items:center;flex-wrap:wrap;background:var(--green-tint);border:1px solid #C4DCCE;border-radius:12px;padding:16px 20px}
+.quote-result.show{display:flex}
+.quote-price{font-family:'Overpass Mono',monospace;font-weight:700;font-size:1.7rem;color:var(--green-deep)}
+.quote-meta{font-size:.9rem;color:var(--gravel)}
+
+/* ---------- trip cards ---------- */
+.trip-list{display:grid;gap:14px;margin-top:8px}
+.trip{background:#fff;border:1px solid var(--line);border-radius:var(--radius);padding:20px;display:grid;grid-template-columns:auto 1fr auto;gap:20px;align-items:center}
+.trip .avatar{width:52px;height:52px;border-radius:50%;background:var(--green-tint);color:var(--green-deep);display:grid;place-items:center;font-weight:900;font-size:1.1rem;border:2px solid var(--green)}
+.trip .who{font-weight:800}
+.trip .meta{font-size:.85rem;color:var(--gravel);margin-top:2px}
+.trip .badges{margin-top:10px;display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.tag{font-size:.72rem;font-weight:800;letter-spacing:.8px;text-transform:uppercase;background:var(--paper);border:1px solid var(--line);border-radius:6px;padding:3px 8px;color:var(--gravel)}
+.tag.space{background:#FFF6DC;border-color:#F0DBA0;color:#7A5E0E}
+.trip .right{text-align:right}
+.trip .from-price{font-family:'Overpass Mono',monospace;font-weight:700;font-size:1.25rem;color:var(--green-deep)}
+.trip .per{font-size:.75rem;color:var(--gravel)}
+.trip .btn{margin-top:10px;font-size:.85rem;padding:9px 16px}
+.empty{padding:36px;text-align:center;color:var(--gravel);background:#fff;border:1.5px dashed var(--line);border-radius:var(--radius)}
+
+/* filters */
+.filters{display:flex;gap:12px;flex-wrap:wrap;margin:18px 0 18px}
+.filters .field{min-width:160px}
+
+/* ---------- how it works ---------- */
+.how{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-top:8px}
+.how .step{background:#fff;border:1px solid var(--line);border-radius:var(--radius);padding:22px}
+.step .kicker{display:inline-block;background:var(--reflect);color:var(--bitumen);font-weight:900;font-size:.72rem;letter-spacing:1.5px;text-transform:uppercase;padding:4px 10px;border-radius:6px;margin-bottom:12px}
+.step h3{font-size:1.05rem;font-weight:800;margin-bottom:6px}
+.step p{font-size:.92rem;color:var(--gravel)}
+
+/* ---------- forms ---------- */
+.form-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-top:20px}
+.form-grid .full{grid-column:1/-1}
+.notice{margin-top:16px;font-size:.85rem;color:var(--gravel);background:var(--paper);border-left:4px solid var(--reflect);padding:10px 14px;border-radius:0 8px 8px 0}
+
+/* ---------- bookings ---------- */
+.booking{background:#fff;border:1px solid var(--line);border-radius:var(--radius);padding:20px;display:grid;grid-template-columns:1fr auto;gap:16px;align-items:center;margin-bottom:12px}
+.status{font-size:.72rem;font-weight:900;letter-spacing:1px;text-transform:uppercase;padding:5px 11px;border-radius:999px}
+.status.requested{background:#FFF6DC;color:#7A5E0E}
+.status.confirmed{background:var(--green-tint);color:var(--green-deep)}
+.status.transit{background:#E3EDFB;color:#1D4E89}
+.status.delivered{background:var(--green);color:#fff}
+.progress{height:8px;background:var(--paper);border-radius:99px;margin-top:12px;overflow:hidden;border:1px solid var(--line)}
+.progress span{display:block;height:100%;background:repeating-linear-gradient(90deg,var(--green) 0 18px,var(--green-deep) 18px 36px);border-radius:99px;transition:width .4s ease}
+
+/* ---------- modal ---------- */
+.modal-back{position:fixed;inset:0;background:rgba(22,28,23,.55);display:none;place-items:center;z-index:100;padding:20px}
+.modal-back.show{display:grid}
+.modal{background:#fff;border-radius:16px;max-width:520px;width:100%;padding:28px;border-top:6px solid var(--green);max-height:90vh;overflow:auto}
+.modal h3{font-size:1.2rem;font-weight:900;text-transform:uppercase;letter-spacing:.4px;margin-bottom:4px}
+.modal .sub{color:var(--gravel);font-size:.9rem;margin-bottom:16px}
+.modal-actions{display:flex;gap:10px;justify-content:flex-end;margin-top:22px}
+.cost-line{display:flex;justify-content:space-between;font-size:.92rem;padding:7px 0;border-bottom:1px dashed var(--line)}
+.cost-line.total{font-weight:900;border-bottom:none;font-size:1.05rem}
+.cost-line .mono{font-family:'Overpass Mono',monospace}
+
+/* toast */
+.toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(20px);background:var(--bitumen);color:#fff;padding:13px 22px;border-radius:10px;font-weight:700;opacity:0;pointer-events:none;transition:all .3s ease;z-index:200;border-left:5px solid var(--reflect)}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+
+footer{background:var(--bitumen);color:#9AA39A;padding:30px 20px;font-size:.85rem;margin-top:40px}
+.footer-inner{max-width:1100px;margin:0 auto;display:flex;justify-content:space-between;gap:20px;flex-wrap:wrap}
+
+@media(max-width:880px){
+  .hero-inner{grid-template-columns:1fr}
+  .signpost{transform:none}
+  .quote-grid{grid-template-columns:1fr 1fr}
+  .how{grid-template-columns:1fr}
+  .form-grid{grid-template-columns:1fr}
+  .trip{grid-template-columns:auto 1fr}
+  .trip .right{grid-column:1/-1;text-align:left;display:flex;align-items:center;gap:16px}
+  .trip .btn{margin-top:0}
+  nav{flex-wrap:wrap}
+}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="header-inner">
+    <div class="logo"><div class="logo-shield">RS</div>RoadShare</div>
+    <nav id="nav">
+      <button data-screen="home" class="active">Send goods</button>
+      <button data-screen="trips">Find a trip</button>
+      <button data-screen="drive">I'm driving</button>
+      <button data-screen="bookings">My deliveries <span id="bookCount"></span></button>
+    </nav>
+  </div>
+</header>
+
+<section class="hero" id="hero">
+  <div class="hero-inner">
+    <div>
+      <h1>Your goods ride with <em>travellers already going</em> interstate</h1>
+      <p class="lede">Thousands of Australians drive between capitals every day with empty boots, back seats and trailers. RoadShare matches your parcel, furniture or freight with a verified traveller on that exact route — cheaper than couriers, faster than post.</p>
+      <div class="hero-ctas">
+        <button class="btn btn-yellow" onclick="goScreen('home');document.getElementById('quoteCard').scrollIntoView({behavior:'smooth'})">Get an instant quote</button>
+        <button class="btn btn-ghost" onclick="goScreen('drive')">Earn while you drive</button>
+      </div>
+    </div>
+    <div class="signpost" aria-label="Popular routes and distances">
+      <div class="sign-title">Popular routes this week</div>
+      <div id="signRows"></div>
+    </div>
+  </div>
+</section>
+
+<main>
+
+  <!-- ============ SEND GOODS ============ -->
+  <section class="screen active" id="screen-home">
+    <h2 class="section">Get a quote</h2>
+    <p class="section-sub">Tell us the route and the size of what you're sending. We'll estimate the price and show travellers heading that way.</p>
+
+    <div class="card" id="quoteCard">
+      <div class="quote-grid">
+        <div class="field">
+          <label for="qFrom">From</label>
+          <select id="qFrom"></select>
+        </div>
+        <div class="field">
+          <label for="qTo">To</label>
+          <select id="qTo"></select>
+        </div>
+        <div class="field">
+          <label for="qSize">Item size</label>
+          <select id="qSize">
+            <option value="S">Small — fits a backpack (≤5 kg)</option>
+            <option value="M">Medium — fits a boot (≤20 kg)</option>
+            <option value="L">Large — back seat / ute tray (≤60 kg)</option>
+            <option value="XL">Extra large — trailer load (≤200 kg)</option>
+          </select>
+        </div>
+        <div class="field">
+          <label for="qWhen">Needed by</label>
+          <input type="date" id="qWhen">
+        </div>
+        <button class="btn btn-green" onclick="getQuote()">Quote</button>
+      </div>
+      <div class="quote-result" id="quoteResult">
+        <div>
+          <div class="quote-price" id="quotePrice">$—</div>
+          <div class="quote-meta" id="quoteMeta"></div>
+        </div>
+        <button class="btn btn-yellow" onclick="goScreen('trips')" style="margin-left:auto">See matching trips →</button>
+      </div>
+    </div>
+
+    <h2 class="section">How it works</h2>
+    <div class="how">
+      <div class="step">
+        <div class="kicker">Senders</div>
+        <h3>Post once, get matched</h3>
+        <p>Describe your item and route. Verified travellers already driving that highway offer to carry it — you pick the price, date and driver that suits.</p>
+      </div>
+      <div class="step">
+        <div class="kicker">Travellers</div>
+        <h3>Fill your empty boot</h3>
+        <p>Post your trip before you leave. Carry a parcel from Melbourne to Sydney and cover your fuel — drivers keep 80% of every fare.</p>
+      </div>
+      <div class="step">
+        <div class="kicker">Both</div>
+        <h3>Protected door to door</h3>
+        <p>ID-verified members, photo proof at pickup and drop-off, live trip tracking, and cover up to $1,500 per item on every delivery.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ FIND A TRIP ============ -->
+  <section class="screen" id="screen-trips">
+    <h2 class="section">Travellers on the road</h2>
+    <p class="section-sub">These members have posted upcoming interstate trips with spare space. Request a spot for your item.</p>
+
+    <div class="filters">
+      <div class="field"><label for="fFrom">From</label><select id="fFrom"></select></div>
+      <div class="field"><label for="fTo">To</label><select id="fTo"></select></div>
+      <div class="field" style="align-self:flex-end"><button class="btn btn-green" onclick="renderTrips()" style="padding:11px 18px;font-size:.9rem">Filter</button></div>
+      <div class="field" style="align-self:flex-end"><button class="btn btn-ghost" style="color:var(--green);border-color:var(--green);padding:11px 18px;font-size:.9rem" onclick="clearFilters()">Show all</button></div>
+    </div>
+
+    <div class="trip-list" id="tripList"></div>
+  </section>
+
+  <!-- ============ DRIVE ============ -->
+  <section class="screen" id="screen-drive">
+    <h2 class="section">Post your trip</h2>
+    <p class="section-sub">Driving interstate soon? List your route and spare space. Senders along the way will request to add their goods to your trip — you approve who and what you carry.</p>
+
+    <div class="card">
+      <div class="form-grid">
+        <div class="field"><label for="dName">Your first name</label><input id="dName" placeholder="e.g. Priya"></div>
+        <div class="field"><label for="dVehicle">Vehicle</label>
+          <select id="dVehicle">
+            <option>Hatchback</option><option>Sedan</option><option>SUV</option>
+            <option>Ute</option><option>Van</option><option>Car + trailer</option>
+          </select>
+        </div>
+        <div class="field"><label for="dFrom">Departing from</label><select id="dFrom"></select></div>
+        <div class="field"><label for="dTo">Heading to</label><select id="dTo"></select></div>
+        <div class="field"><label for="dDate">Departure date</label><input type="date" id="dDate"></div>
+        <div class="field"><label for="dSpace">Largest item you can take</label>
+          <select id="dSpace">
+            <option value="S">Small (backpack)</option>
+            <option value="M" selected>Medium (boot)</option>
+            <option value="L">Large (back seat / tray)</option>
+            <option value="XL">Extra large (trailer)</option>
+          </select>
+        </div>
+        <div class="field full"><label for="dNotes">Notes for senders (optional)</label>
+          <textarea id="dNotes" rows="2" placeholder="e.g. Leaving early morning, can detour up to 15 min from the Hume, no fragile glassware"></textarea>
+        </div>
+      </div>
+      <div class="notice">Estimated earnings appear after you choose a route — drivers keep 80% of each fare. You'll need a verified ID and licence before your first carry.</div>
+      <div style="margin-top:20px;display:flex;gap:12px;align-items:center;flex-wrap:wrap">
+        <button class="btn btn-green" onclick="postTrip()">Post this trip</button>
+        <span id="earnEstimate" style="font-weight:700;color:var(--green-deep)"></span>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ BOOKINGS ============ -->
+  <section class="screen" id="screen-bookings">
+    <h2 class="section">My deliveries</h2>
+    <p class="section-sub">Track every item you've sent. Status updates as your driver picks up, travels and delivers.</p>
+    <div id="bookingList"></div>
+  </section>
+
+</main>
+
+<!-- booking modal -->
+<div class="modal-back" id="modalBack" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
+  <div class="modal">
+    <h3 id="modalTitle">Request this trip</h3>
+    <p class="sub" id="modalSub"></p>
+    <div class="field" style="margin-bottom:14px">
+      <label for="mItem">What are you sending?</label>
+      <input id="mItem" placeholder="e.g. Box of books, bar fridge, framed artwork">
+    </div>
+    <div class="field" style="margin-bottom:14px">
+      <label for="mSize">Item size</label>
+      <select id="mSize">
+        <option value="S">Small (≤5 kg)</option>
+        <option value="M">Medium (≤20 kg)</option>
+        <option value="L">Large (≤60 kg)</option>
+        <option value="XL">Extra large (≤200 kg)</option>
+      </select>
+    </div>
+    <div id="costBreakdown"></div>
+    <div class="modal-actions">
+      <button class="btn btn-ghost" style="color:var(--gravel);border-color:var(--line)" onclick="closeModal()">Cancel</button>
+      <button class="btn btn-yellow" onclick="confirmBooking()">Send request</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<footer>
+  <div class="footer-inner">
+    <div><strong style="color:#fff">RoadShare</strong> — goods that travel with people. Demo app.</div>
+    <div>Every member ID-verified · Items covered to $1,500 · Drivers keep 80%</div>
+  </div>
+</footer>
+
+<script>
+/* ================= data ================= */
+const CITIES = ["Melbourne","Sydney","Brisbane","Adelaide","Perth","Canberra","Darwin","Hobart"];
+const CODE = {Melbourne:"MEL",Sydney:"SYD",Brisbane:"BNE",Adelaide:"ADL",Perth:"PER",Canberra:"CBR",Darwin:"DRW",Hobart:"HBA"};
+// approximate road distances (km) between capitals
+const KM = {
+ "Melbourne-Sydney":878,"Melbourne-Brisbane":1677,"Melbourne-Adelaide":727,"Melbourne-Perth":3418,
+ "Melbourne-Canberra":663,"Melbourne-Darwin":3750,"Melbourne-Hobart":599,
+ "Sydney-Brisbane":911,"Sydney-Adelaide":1375,"Sydney-Perth":3934,"Sydney-Canberra":286,
+ "Sydney-Darwin":3970,"Sydney-Hobart":1320,
+ "Brisbane-Adelaide":2031,"Brisbane-Perth":4310,"Brisbane-Canberra":1197,"Brisbane-Darwin":3429,"Brisbane-Hobart":2240,
+ "Adelaide-Perth":2693,"Adelaide-Canberra":1160,"Adelaide-Darwin":3028,"Adelaide-Hobart":1280,
+ "Perth-Canberra":3724,"Perth-Darwin":4042,"Perth-Hobart":3940,
+ "Canberra-Darwin":3938,"Canberra-Hobart":1190,"Darwin-Hobart":4310
+};
+function km(a,b){ return KM[a+"-"+b] ?? KM[b+"-"+a] ?? 0; }
+const SIZE_MULT = {S:1, M:1.8, L:3, XL:5};
+const SIZE_LABEL = {S:"Small",M:"Medium",L:"Large",XL:"Extra large"};
+function price(a,b,size){
+  const base = 15 + km(a,b)*0.035;
+  return Math.round(base * SIZE_MULT[size]);
+}
+function ferryNote(a,b){ return (a==="Hobart"||b==="Hobart") ? " · incl. Spirit of Tasmania crossing" : ""; }
+
+let trips = [
+ {id:1,name:"Priya",vehicle:"SUV",from:"Melbourne",to:"Sydney",date:offset(2),space:"L",rating:4.9,carries:31,notes:"Up the Hume, flexible drop-off across inner Sydney."},
+ {id:2,name:"Jack",vehicle:"Ute",from:"Melbourne",to:"Brisbane",date:offset(4),space:"XL",rating:4.8,carries:54,notes:"Towing an empty trailer back — happy to take furniture."},
+ {id:3,name:"Mei",vehicle:"Sedan",from:"Sydney",to:"Canberra",date:offset(1),space:"M",rating:5.0,carries:12,notes:"Weekly commute, leaves 6am sharp."},
+ {id:4,name:"Tom",vehicle:"Van",from:"Adelaide",to:"Melbourne",date:offset(3),space:"XL",rating:4.7,carries:88,notes:"Half-empty van, can do two or three large items."},
+ {id:5,name:"Aisha",vehicle:"Hatchback",from:"Brisbane",to:"Sydney",date:offset(5),space:"S",rating:4.9,carries:19,notes:"Documents, small parcels, nothing perishable."},
+ {id:6,name:"Liam",vehicle:"Car + trailer",from:"Sydney",to:"Perth",date:offset(9),space:"XL",rating:4.6,carries:7,notes:"Crossing the Nullarbor — once-a-year relocation run."},
+ {id:7,name:"Grace",vehicle:"SUV",from:"Melbourne",to:"Adelaide",date:offset(2),space:"L",rating:4.8,carries:26,notes:"Overnight in Horsham, delivery next morning."},
+];
+let bookings = [];
+let activeTrip = null;
+let nextId = 100;
+const STATUSES = ["requested","confirmed","transit","delivered"];
+const STATUS_LABEL = {requested:"Requested",confirmed:"Confirmed",transit:"In transit",delivered:"Delivered"};
+
+function offset(days){ const d=new Date(); d.setDate(d.getDate()+days); return d.toISOString().slice(0,10); }
+function fmtDate(s){ return new Date(s+"T00:00").toLocaleDateString("en-AU",{weekday:"short",day:"numeric",month:"short"}); }
+
+/* ================= setup ================= */
+function fillSelect(id, withAny){
+  const el = document.getElementById(id);
+  el.innerHTML = (withAny ? '<option value="">Anywhere</option>' : '') +
+    CITIES.map(c=>`<option>${c}</option>`).join("");
+}
+["qFrom","qTo","dFrom","dTo"].forEach(id=>fillSelect(id,false));
+["fFrom","fTo"].forEach(id=>fillSelect(id,true));
+document.getElementById("qTo").value="Sydney";
+document.getElementById("dTo").value="Sydney";
+document.getElementById("qWhen").value = offset(5);
+document.getElementById("dDate").value = offset(3);
+
+/* hero signpost */
+const popular = [["Melbourne","Sydney"],["Sydney","Brisbane"],["Melbourne","Adelaide"],["Adelaide","Perth"]];
+document.getElementById("signRows").innerHTML = popular.map(([a,b])=>`
+  <div class="sign-row">
+    <span class="dest">${CODE[a]} <span style="color:var(--reflect)">→</span> ${CODE[b]}</span>
+    <span><span class="km">${km(a,b).toLocaleString()} km</span><span class="price">from $${price(a,b,"S")}</span></span>
+  </div>`).join("");
+
+/* ================= navigation ================= */
+function goScreen(name){
+  document.querySelectorAll(".screen").forEach(s=>s.classList.remove("active"));
+  document.getElementById("screen-"+name).classList.add("active");
+  document.querySelectorAll("#nav button").forEach(b=>b.classList.toggle("active",b.dataset.screen===name));
+  document.getElementById("hero").style.display = name==="home" ? "" : "none";
+  window.scrollTo({top:0,behavior:"smooth"});
+  if(name==="trips") renderTrips();
+  if(name==="bookings") renderBookings();
+}
+document.querySelectorAll("#nav button").forEach(b=>b.addEventListener("click",()=>goScreen(b.dataset.screen)));
+
+/* ================= quote ================= */
+function getQuote(){
+  const a=document.getElementById("qFrom").value, b=document.getElementById("qTo").value;
+  const size=document.getElementById("qSize").value;
+  if(a===b){ toast("Pick two different cities"); return; }
+  const p=price(a,b,size), d=km(a,b);
+  document.getElementById("quotePrice").textContent = "$"+p;
+  document.getElementById("quoteMeta").textContent =
+    `${a} → ${b} · ${d.toLocaleString()} km · ${SIZE_LABEL[size]} item${ferryNote(a,b)} · vs ~$${Math.round(p*2.4)} with a courier`;
+  document.getElementById("quoteResult").classList.add("show");
+  document.getElementById("fFrom").value=a;
+  document.getElementById("fTo").value=b;
+}
+
+/* ================= trips ================= */
+function clearFilters(){ document.getElementById("fFrom").value=""; document.getElementById("fTo").value=""; renderTrips(); }
+function renderTrips(){
+  const ff=document.getElementById("fFrom").value, ft=document.getElementById("fTo").value;
+  const list = trips.filter(t=>(!ff||t.from===ff)&&(!ft||t.to===ft))
+                    .sort((x,y)=>x.date.localeCompare(y.date));
+  const el=document.getElementById("tripList");
+  if(!list.length){
+    el.innerHTML = `<div class="empty">No trips on that route yet. Try “Show all”, or post a request and we'll alert travellers heading that way.</div>`;
+    return;
+  }
+  el.innerHTML = list.map(t=>`
+    <article class="trip">
+      <div class="avatar">${t.name[0]}</div>
+      <div>
+        <div class="who">${t.name} · <span style="font-weight:600;color:var(--gravel)">${t.vehicle}</span></div>
+        <div class="meta">★ ${t.rating.toFixed(1)} · ${t.carries} deliveries · departs ${fmtDate(t.date)}</div>
+        <div class="badges">
+          <span class="route-chip">${CODE[t.from]} <span class="arrow">→</span> ${CODE[t.to]} <span class="kms">${km(t.from,t.to).toLocaleString()} km</span></span>
+          <span class="tag space">Up to ${SIZE_LABEL[t.space]}</span>
+        </div>
+        <div class="meta" style="margin-top:8px">${t.notes}</div>
+      </div>
+      <div class="right">
+        <div>
+          <div class="from-price">from $${price(t.from,t.to,"S")}</div>
+          <div class="per">small item</div>
+        </div>
+        <button class="btn btn-green" onclick="openModal(${t.id})">Request spot</button>
+      </div>
+    </article>`).join("");
+}
+
+/* ================= post a trip ================= */
+function updateEarnings(){
+  const a=document.getElementById("dFrom").value, b=document.getElementById("dTo").value;
+  const sp=document.getElementById("dSpace").value;
+  if(a===b){ document.getElementById("earnEstimate").textContent=""; return; }
+  const e=Math.round(price(a,b,sp)*0.8);
+  document.getElementById("earnEstimate").textContent = `Earn up to ~$${e} per ${SIZE_LABEL[sp].toLowerCase()} item on this route`;
+}
+["dFrom","dTo","dSpace"].forEach(id=>document.getElementById(id).addEventListener("change",updateEarnings));
+updateEarnings();
+
+function postTrip(){
+  const name=document.getElementById("dName").value.trim();
+  const a=document.getElementById("dFrom").value, b=document.getElementById("dTo").value;
+  const date=document.getElementById("dDate").value;
+  if(!name){ toast("Add your first name"); return; }
+  if(a===b){ toast("Pick two different cities"); return; }
+  if(!date){ toast("Pick a departure date"); return; }
+  trips.push({id:nextId++,name,vehicle:document.getElementById("dVehicle").value,from:a,to:b,date,
+    space:document.getElementById("dSpace").value,rating:5.0,carries:0,
+    notes:document.getElementById("dNotes").value.trim()||"New member — first carry."});
+  toast("Trip posted — senders on this route can now find you");
+  document.getElementById("dName").value=""; document.getElementById("dNotes").value="";
+  document.getElementById("fFrom").value=a; document.getElementById("fTo").value=b;
+  goScreen("trips");
+}
+
+/* ================= booking modal ================= */
+function openModal(id){
+  activeTrip = trips.find(t=>t.id===id);
+  document.getElementById("modalSub").textContent =
+    `${activeTrip.name} · ${activeTrip.from} → ${activeTrip.to} · departs ${fmtDate(activeTrip.date)}`;
+  // limit size options to driver capacity
+  const cap = ["S","M","L","XL"].indexOf(activeTrip.space);
+  document.getElementById("mSize").innerHTML = ["S","M","L","XL"].slice(0,cap+1)
+    .map(s=>`<option value="${s}">${SIZE_LABEL[s]}</option>`).join("");
+  document.getElementById("mItem").value="";
+  updateCost();
+  document.getElementById("modalBack").classList.add("show");
+  document.getElementById("mItem").focus();
+}
+function updateCost(){
+  const s=document.getElementById("mSize").value;
+  const p=price(activeTrip.from,activeTrip.to,s);
+  const fee=Math.round(p*0.2), driver=p-fee;
+  document.getElementById("costBreakdown").innerHTML = `
+    <div class="cost-line"><span>Carry fare (${SIZE_LABEL[s]}, ${km(activeTrip.from,activeTrip.to).toLocaleString()} km${ferryNote(activeTrip.from,activeTrip.to)})</span><span class="mono">$${p}</span></div>
+    <div class="cost-line"><span>— goes to your driver</span><span class="mono">$${driver}</span></div>
+    <div class="cost-line"><span>— service & item cover</span><span class="mono">$${fee}</span></div>
+    <div class="cost-line total"><span>You pay</span><span class="mono" style="color:var(--green-deep)">$${p}</span></div>`;
+}
+document.getElementById("mSize").addEventListener("change",updateCost);
+function closeModal(){ document.getElementById("modalBack").classList.remove("show"); }
+document.getElementById("modalBack").addEventListener("click",e=>{ if(e.target.id==="modalBack") closeModal(); });
+document.addEventListener("keydown",e=>{ if(e.key==="Escape") closeModal(); });
+
+function confirmBooking(){
+  const item=document.getElementById("mItem").value.trim();
+  if(!item){ toast("Describe what you're sending"); return; }
+  const s=document.getElementById("mSize").value;
+  bookings.unshift({id:nextId++,trip:activeTrip,item,size:s,price:price(activeTrip.from,activeTrip.to,s),status:0});
+  closeModal();
+  toast(`Request sent to ${activeTrip.name} — you'll be notified when it's accepted`);
+  updateBookCount();
+  goScreen("bookings");
+}
+
+/* ================= bookings ================= */
+function updateBookCount(){
+  const n=bookings.length;
+  document.getElementById("bookCount").textContent = n ? `(${n})` : "";
+}
+function renderBookings(){
+  const el=document.getElementById("bookingList");
+  if(!bookings.length){
+    el.innerHTML = `<div class="empty">Nothing on the road yet. Get a quote and request a spot with a traveller — your deliveries will appear here.</div>`;
+    return;
+  }
+  el.innerHTML = bookings.map(b=>{
+    const st=STATUSES[b.status];
+    const pct=[10,35,70,100][b.status];
+    return `
+    <div class="booking">
+      <div>
+        <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap">
+          <strong>${b.item}</strong>
+          <span class="route-chip" style="font-size:.75rem;padding:3px 9px">${CODE[b.trip.from]} <span class="arrow">→</span> ${CODE[b.trip.to]}</span>
+          <span class="status ${st}">${STATUS_LABEL[st]}</span>
+        </div>
+        <div class="meta" style="font-size:.85rem;color:var(--gravel);margin-top:6px">
+          ${SIZE_LABEL[b.size]} · with ${b.trip.name} (${b.trip.vehicle}) · departs ${fmtDate(b.trip.date)} · $${b.price}
+        </div>
+        <div class="progress"><span style="width:${pct}%"></span></div>
+      </div>
+      <div>
+        ${b.status<3
+          ? `<button class="btn btn-green" style="font-size:.82rem;padding:9px 14px" onclick="advance(${b.id})">${["Simulate: driver accepts","Simulate: picked up","Simulate: delivered"][b.status]}</button>`
+          : `<span style="font-weight:800;color:var(--green-deep)">✓ Done — rate ${b.trip.name}</span>`}
+      </div>
+    </div>`;
+  }).join("");
+}
+function advance(id){
+  const b=bookings.find(x=>x.id===id);
+  if(b&&b.status<3){ b.status++; renderBookings();
+    toast(["Driver confirmed your spot","Item picked up — now in transit","Delivered with photo proof"][b.status-1]); }
+}
+
+/* ================= toast ================= */
+let toastTimer;
+function toast(msg){
+  const t=document.getElementById("toast");
+  t.textContent=msg; t.classList.add("show");
+  clearTimeout(toastTimer);
+  toastTimer=setTimeout(()=>t.classList.remove("show"),3200);
+}
+
+renderTrips();
+</script>
+</body>
+</html>

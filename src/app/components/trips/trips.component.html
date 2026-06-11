@@ -1,0 +1,143 @@
+<h2 class="section">Travellers on the road</h2>
+<p class="section-sub">These members have posted upcoming interstate trips with spare space. Request a spot for your item.</p>
+
+<!-- Filter Section -->
+<div class="filters">
+  <div class="field">
+    <label for="fFrom">From</label>
+    <select id="fFrom" name="fFrom" [(ngModel)]="fFrom">
+      <option value="">Anywhere</option>
+      @for (city of cities; track city) {
+        <option [value]="city">{{ city }}</option>
+      }
+    </select>
+  </div>
+  <div class="field">
+    <label for="fTo">To</label>
+    <select id="fTo" name="fTo" [(ngModel)]="fTo">
+      <option value="">Anywhere</option>
+      @for (city of cities; track city) {
+        <option [value]="city">{{ city }}</option>
+      }
+    </select>
+  </div>
+  <div class="field btn-field">
+    <button class="btn btn-green filter-btn" (click)="loadTrips()">Filter</button>
+  </div>
+  <div class="field btn-field">
+    <button class="btn btn-ghost clear-btn" (click)="clearFilters()">Show all</button>
+  </div>
+</div>
+
+<!-- Trips Loading State -->
+@if (isLoading()) {
+  <div class="loading-state">
+    <div class="spinner"></div>
+    <p>Searching for active travellers...</p>
+  </div>
+} @else {
+  <!-- Trips List -->
+  <div class="trip-list">
+    @if (trips().length === 0) {
+      <div class="empty">
+        No trips on that route yet. Try “Show all”, or post a request and we'll alert travellers heading that way.
+      </div>
+    } @else {
+      @for (trip of trips(); track trip.id) {
+        <article class="trip">
+          <div class="avatar">{{ trip.driver?.name?.charAt(0) || 'D' }}</div>
+          <div class="trip-details">
+            <div class="who">
+              {{ trip.driver?.name }} · 
+              <span class="vehicle">{{ trip.vehicle }}</span>
+            </div>
+            <div class="meta">
+              ★ {{ trip.driver?.rating?.toFixed(1) || '5.0' }} · 
+              {{ trip.driver?.carries || 0 }} deliveries · 
+              departs {{ getFriendlyDateText(trip.date) }}
+            </div>
+            <div class="badges">
+              <span class="route-chip">
+                {{ getRouteCode(trip.from_city) }} 
+                <span class="arrow">→</span> 
+                {{ getRouteCode(trip.to_city) }} 
+                <span class="kms">{{ getDistanceText(trip.from_city, trip.to_city) }} km</span>
+              </span>
+              <span class="tag space">Up to {{ getSizeShort(trip.space) }} size</span>
+            </div>
+            @if (trip.notes) {
+              <div class="notes">{{ trip.notes }}</div>
+            }
+          </div>
+          <div class="right">
+            <div>
+              <div class="from-price">from ${{ getStartingPrice(trip.from_city, trip.to_city) }}</div>
+              <div class="per">small item</div>
+            </div>
+            <button class="btn btn-green request-btn" (click)="openBookingModal(trip)">Request spot</button>
+          </div>
+        </article>
+      }
+    }
+  </div>
+}
+
+<!-- Booking Modal Overlay -->
+@if (showModal() && activeTrip) {
+  <div class="modal-back show" (click)="closeBookingModal()">
+    <div class="modal" (click)="$event.stopPropagation()">
+      <h3>Request this trip</h3>
+      <p class="sub">
+        {{ activeTrip.driver?.name }} · 
+        {{ activeTrip.from_city }} → {{ activeTrip.to_city }} · 
+        departs {{ getFriendlyDateText(activeTrip.date) }}
+      </p>
+
+      <div class="field field-spacing">
+        <label for="mItem">What are you sending?</label>
+        <input 
+          id="mItem" 
+          name="mItem" 
+          [(ngModel)]="mItem" 
+          placeholder="e.g. Box of books, bar fridge, framed artwork" 
+          required>
+      </div>
+
+      <div class="field field-spacing">
+        <label for="mSize">Item size</label>
+        <select id="mSize" name="mSize" [(ngModel)]="mSize" (change)="updateBookingCost()">
+          @for (sz of getAvailableSizes(); track sz.value) {
+            <option [value]="sz.value">{{ sz.label }}</option>
+          }
+        </select>
+      </div>
+
+      <!-- Cost Breakdown -->
+      <div class="cost-breakdown">
+        <div class="cost-line">
+          <span>Carry fare ({{ getSizeShort(mSize) }} size, {{ getDistanceText(activeTrip.from_city, activeTrip.to_city) }} km{{ getModalFerryNote() }})</span>
+          <span class="mono">${{ carryFare }}</span>
+        </div>
+        <div class="cost-line info-line">
+          <span>— goes to your driver</span>
+          <span class="mono">${{ driverShare }}</span>
+        </div>
+        <div class="cost-line info-line">
+          <span>— service & item cover</span>
+          <span class="mono">${{ feeShare }}</span>
+        </div>
+        <div class="cost-line total">
+          <span>You pay</span>
+          <span class="mono total-price">${{ carryFare }}</span>
+        </div>
+      </div>
+
+      <div class="modal-actions">
+        <button class="btn btn-ghost cancel-btn" (click)="closeBookingModal()">Cancel</button>
+        <button class="btn btn-yellow confirm-btn" (click)="confirmBooking()" [disabled]="isSubmitting()">
+          {{ isSubmitting() ? 'Submitting...' : 'Send request' }}
+        </button>
+      </div>
+    </div>
+  </div>
+}

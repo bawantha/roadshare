@@ -1,3 +1,94 @@
-/* You can add global styles to this file, and also import other style files */
+@import url('https://fonts.googleapis.com/css2?family=Overpass:wght@400;600;700;800;900&family=Overpass+Mono:wght@600;700&display=swap');
 
 @import 'tailwindcss';
+
+:root {
+  --green: #00703C;        /* AS1743 sign green */
+  --green-deep: #064E2C;
+  --green-tint: #E7F1EB;
+  --bitumen: #20241F;
+  --gravel: #6A7268;
+  --paper: #F5F6F3;
+  --white: #FFFFFF;
+  --reflect: #FFC72C;      /* warning-sign yellow */
+  --line: #D9DDD6;
+  --radius: 14px;
+}
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  font-family: 'Overpass', system-ui, sans-serif;
+  background: var(--paper);
+  color: var(--bitumen);
+  line-height: 1.55;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* ---------- buttons ---------- */
+.btn {
+  border: none;
+  border-radius: 10px;
+  font-weight: 800;
+  font-size: 1rem;
+  padding: 13px 22px;
+  letter-spacing: .3px;
+  transition: transform .12s ease, background-color 0.2s;
+  font-family: inherit;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.btn:active {
+  transform: translateY(1px);
+}
+
+.btn:focus-visible {
+  outline: 3px solid var(--reflect);
+  outline-offset: 2px;
+}
+
+.btn-yellow {
+  background: var(--reflect);
+  color: var(--bitumen);
+}
+
+.btn-yellow:hover {
+  background: #FFD45A;
+}
+
+.btn-ghost {
+  background: transparent;
+  color: var(--white);
+  border: 2px solid rgba(255, 255, 255, .7);
+}
+
+.btn-ghost:hover {
+  border-color: var(--white);
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.btn-green {
+  background: var(--green);
+  color: var(--white);
+}
+
+.btn-green:hover {
+  background: var(--green-deep);
+}
+
+/* Form fields input resets */
+input, select, textarea {
+  font-family: inherit;
+  font-size: 1rem;
+}

@@ -1,0 +1,64 @@
+<div class="auth-container">
+  <div class="auth-card">
+    <div class="logo-shield-container">
+      <div class="logo-shield">RS</div>
+    </div>
+    
+    <h2>{{ isSignUp() ? 'Create your account' : 'Sign in to RoadShare' }}</h2>
+    <p class="subtitle">
+      {{ isSignUp() ? 'Join a community of interstate travellers saving fuel and courier fees.' : 'Track your shipments, post trips and request deliveries.' }}
+    </p>
+
+    <form (ngSubmit)="onSubmit()">
+      @if (isSignUp()) {
+        <div class="field">
+          <label for="name">First Name</label>
+          <input 
+            type="text" 
+            id="name" 
+            name="name" 
+            [(ngModel)]="name" 
+            placeholder="e.g. Priya" 
+            required>
+        </div>
+      }
+
+      <div class="field">
+        <label for="email">Email Address</label>
+        <input 
+          type="email" 
+          id="email" 
+          name="email" 
+          [(ngModel)]="email" 
+          placeholder="you@example.com" 
+          required>
+      </div>
+
+      <div class="field">
+        <label for="password">Password</label>
+        <input 
+          type="password" 
+          id="password" 
+          name="password" 
+          [(ngModel)]="password" 
+          placeholder="••••••••" 
+          required>
+      </div>
+
+      <button type="submit" class="btn btn-yellow btn-block" [disabled]="isLoading()">
+        {{ isLoading() ? 'Processing...' : (isSignUp() ? 'Create Account' : 'Sign In') }}
+      </button>
+    </form>
+
+    <div class="toggle-mode">
+      <span>{{ isSignUp() ? 'Already have an account?' : 'New to RoadShare?' }}</span>
+      <button class="toggle-btn" (click)="toggleMode()">
+        {{ isSignUp() ? 'Sign In instead' : 'Create an account' }}
+      </button>
+    </div>
+    
+    <div class="demo-credentials" *ngIf="!isSignUp()">
+      <p><strong>Demo Mode Available:</strong> Enter any email and password to test locally! E.g., <code>priya@roadshare.au</code> and <code>password123</code></p>
+    </div>
+  </div>
+</div>

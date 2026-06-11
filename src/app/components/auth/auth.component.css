@@ -1,0 +1,137 @@
+.auth-container {
+  display: grid;
+  place-items: center;
+  min-height: calc(100vh - 140px);
+  padding: 40px 20px;
+}
+
+.auth-card {
+  background: var(--white);
+  border: 1px solid var(--line);
+  border-top: 6px solid var(--green);
+  border-radius: var(--radius);
+  max-width: 440px;
+  width: 100%;
+  padding: 36px 30px;
+  box-shadow: 0 12px 30px rgba(32, 36, 31, 0.08);
+}
+
+.logo-shield-container {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 20px;
+}
+
+.logo-shield {
+  width: 50px;
+  height: 55px;
+  background: var(--green);
+  color: var(--white);
+  display: grid;
+  place-items: center;
+  font-weight: 900;
+  font-size: 1.35rem;
+  clip-path: polygon(0 0, 100% 0, 100% 70%, 50% 100%, 0 70%);
+  padding-top: 3px;
+  box-shadow: 0 4px 10px rgba(0, 112, 60, 0.2);
+}
+
+h2 {
+  font-size: 1.45rem;
+  font-weight: 900;
+  text-align: center;
+  text-transform: uppercase;
+  color: var(--bitumen);
+  margin-bottom: 8px;
+}
+
+.subtitle {
+  color: var(--gravel);
+  font-size: 0.88rem;
+  text-align: center;
+  margin-bottom: 28px;
+  line-height: 1.5;
+}
+
+form {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.field label {
+  font-size: 0.72rem;
+  font-weight: 800;
+  letter-spacing: 1.2px;
+  text-transform: uppercase;
+  color: var(--gravel);
+}
+
+.field input {
+  padding: 12px;
+  border: 1.5px solid var(--line);
+  border-radius: 9px;
+  background: var(--white);
+  color: var(--bitumen);
+  font-size: 0.95rem;
+  transition: border-color 0.2s, outline-color 0.2s;
+}
+
+.field input:focus {
+  outline: 3px solid rgba(0, 112, 60, 0.15);
+  border-color: var(--green);
+}
+
+.btn-block {
+  width: 100%;
+  padding: 14px;
+  font-size: 1rem;
+  margin-top: 10px;
+}
+
+.toggle-mode {
+  margin-top: 24px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.85rem;
+  color: var(--gravel);
+}
+
+.toggle-btn {
+  background: transparent;
+  border: none;
+  color: var(--green);
+  font-weight: 800;
+  text-decoration: underline;
+  cursor: pointer;
+  padding: 0;
+}
+
+.toggle-btn:hover {
+  color: var(--green-deep);
+}
+
+.demo-credentials {
+  margin-top: 20px;
+  padding: 12px;
+  background: var(--green-tint);
+  border: 1px solid #C4DCCE;
+  border-radius: 8px;
+  font-size: 0.8rem;
+  color: var(--green-deep);
+  line-height: 1.4;
+  text-align: center;
+}
+
+.demo-credentials code {
+  font-family: 'Overpass Mono', monospace;
+  font-weight: 700;
+}
