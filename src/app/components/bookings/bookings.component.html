@@ -45,6 +45,9 @@
                   {{ getRouteCode(b.trip?.to_city || '') }}
                 </span>
                 <span class="status-badge" [ngClass]="statusClasses[b.status]">{{ statusLabels[b.status] }}</span>
+                <span class="payment-badge" [class.paid]="b.stripe_payment_status !== 'pending'">
+                  {{ b.stripe_payment_status | uppercase }}
+                </span>
               </div>
               <div class="price-section">${{ b.price }}</div>
             </div>
@@ -62,8 +65,45 @@
               }
             </div>
             
-            <div class="booking-footer" *ngIf="b.status === 0">
-              <button class="btn btn-ghost cancel-btn" (click)="updateStatus(b, -1)">Cancel Request</button>
+            <div class="booking-footer">
+              <!-- Chat Trigger -->
+              @if (b.status >= 1) {
+                <button class="btn btn-ghost chat-trigger-btn" (click)="openChat(b)">
+                  💬 Chat with {{ b.trip?.driver?.name }}
+                </button>
+              }
+
+              <!-- Actions based on status and payments -->
+              <div class="action-box">
+                @if (b.status === 0) {
+                  <span class="wait-msg">Waiting for driver response...</span>
+                  <button class="btn btn-ghost cancel-btn" (click)="updateStatus(b, -1)">Cancel Request</button>
+                } @else if (b.status === 1 && b.stripe_payment_status === 'pending') {
+                  <button class="btn btn-yellow payment-btn" (click)="payBooking(b)" [disabled]="isProcessingPayment()">
+                    {{ isProcessingPayment() ? 'Securing stripe...' : 'Pay & Confirm (Escrow)' }}
+                  </button>
+                } @else if (b.status === 1 && b.stripe_payment_status === 'escrowed') {
+                  <span class="escrow-msg">Funds secured in escrow. Awaiting driver pickup.</span>
+                } @else if (b.status === 2 && b.stripe_payment_status === 'escrowed') {
+                  <span class="escrow-msg">Item is on the road! Funds held in escrow.</span>
+                } @else if (b.status === 3 && b.stripe_payment_status === 'escrowed') {
+                  <button class="btn btn-yellow release-btn" (click)="releasePayment(b)">Release Escrow Payment</button>
+                } @else if (b.status === 3 && b.stripe_payment_status === 'released') {
+                  <div class="delivered-actions">
+                    <span class="released-msg">Payment released. Delivery completed!</span>
+                    @if (!hasReviewed(b.id)) {
+                      <button class="btn btn-green review-btn" (click)="openReviewModal(b)">Write Driver Review</button>
+                    } @else {
+                      <span class="reviewed-badge">Review Posted ✓</span>
+                    }
+                  </div>
+                } @else if (b.status === -1) {
+                  <span class="declined-msg">Booking cancelled / declined</span>
+                  @if (b.stripe_payment_status === 'refunded') {
+                    <span class="refund-badge">STRIPE REFUNDED</span>
+                  }
+                }
+              </div>
             </div>
           </div>
         }
@@ -90,6 +130,9 @@
                   {{ getRouteCode(b.trip?.to_city || '') }}
                 </span>
                 <span class="status-badge" [ngClass]="statusClasses[b.status]">{{ statusLabels[b.status] }}</span>
+                <span class="payment-badge" [class.paid]="b.stripe_payment_status !== 'pending'">
+                  {{ b.stripe_payment_status | uppercase }}
+                </span>
               </div>
               <div class="price-section">${{ b.price }}</div>
             </div>
@@ -108,25 +151,62 @@
             </div>
 
             <div class="booking-footer">
-              <!-- Actions based on status -->
-              @if (b.status === 0) {
-                <div class="action-buttons">
-                  <button class="btn btn-ghost decline-btn" (click)="updateStatus(b, -1)">Decline</button>
-                  <button class="btn btn-green accept-btn" (click)="updateStatus(b, 1)">Accept Request</button>
-                </div>
-              } @else if (b.status === 1) {
-                <button class="btn btn-green action-btn" (click)="updateStatus(b, 2)">Mark as Picked Up</button>
-              } @else if (b.status === 2) {
-                <button class="btn btn-green action-btn" (click)="updateStatus(b, 3)">Mark as Delivered</button>
-              } @else if (b.status === 3) {
-                <span class="completion-msg">✓ Delivery Completed</span>
-              } @else if (b.status === -1) {
-                <span class="declined-msg">Decline processed</span>
+              <!-- Chat Trigger -->
+              @if (b.status >= 1) {
+                <button class="btn btn-ghost chat-trigger-btn" (click)="openChat(b)">
+                  💬 Chat with {{ b.sender?.name }}
+                </button>
               }
+
+              <!-- Actions based on status -->
+              <div class="action-box">
+                @if (b.status === 0) {
+                  <div class="action-buttons">
+                    <button class="btn btn-ghost decline-btn" (click)="updateStatus(b, -1)">Decline</button>
+                    <button class="btn btn-green accept-btn" (click)="updateStatus(b, 1)">Accept Request</button>
+                  </div>
+                } @else if (b.status === 1 && b.stripe_payment_status === 'pending') {
+                  <span class="wait-pay-msg">Awaiting sender payment...</span>
+                } @else if (b.status === 1 && b.stripe_payment_status === 'escrowed') {
+                  <button class="btn btn-green action-btn" (click)="updateStatus(b, 2)">Mark as Picked Up</button>
+                } @else if (b.status === 2 && b.stripe_payment_status === 'escrowed') {
+                  <button class="btn btn-green action-btn" (click)="updateStatus(b, 3)">Mark as Delivered</button>
+                } @else if (b.status === 3 && b.stripe_payment_status === 'escrowed') {
+                  <span class="wait-release-msg">Waiting for sender to release payment...</span>
+                } @else if (b.status === 3 && b.stripe_payment_status === 'released') {
+                  <span class="completion-msg">✓ Completed & Paid (${{ getDriverPayout(b.price) }})</span>
+                } @else if (b.status === -1) {
+                  <span class="declined-msg">Decline processed</span>
+                  @if (b.stripe_payment_status === 'refunded') {
+                    <span class="refund-badge">STRIPE REFUNDED</span>
+                  }
+                }
+              </div>
             </div>
           </div>
         }
       }
     </div>
   }
+}
+
+<!-- Chat Overlay Window -->
+@if (showChat() && chatBookingId) {
+  <app-chat 
+    [bookingId]="chatBookingId" 
+    [bookingItem]="chatBookingItem" 
+    [recipientName]="chatRecipientName" 
+    (closed)="closeChat()">
+  </app-chat>
+}
+
+<!-- Review Driver Modal -->
+@if (showReview() && reviewBookingId) {
+  <app-review-modal 
+    [bookingId]="reviewBookingId" 
+    [driverId]="reviewDriverId" 
+    [driverName]="reviewDriverName" 
+    (closed)="closeReviewModal()" 
+    (submitted)="onReviewSubmitted()">
+  </app-review-modal>
 }

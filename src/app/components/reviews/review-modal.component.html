@@ -1,0 +1,39 @@
+<div class="modal-back show" (click)="cancel()">
+  <div class="modal" (click)="$event.stopPropagation()">
+    <h3>Rate your driver</h3>
+    <p class="sub">How was your delivery experience carrying items with <strong>{{ driverName }}</strong>?</p>
+
+    <!-- Star Picker -->
+    <div class="star-rating">
+      @for (star of stars; track star) {
+        <button 
+          type="button" 
+          class="star-btn" 
+          [class.filled]="star <= rating()" 
+          (click)="setRating(star)">
+          ★
+        </button>
+      }
+      <span class="rating-value">{{ rating() }}/5 stars</span>
+    </div>
+
+    <!-- Comment Form -->
+    <div class="field">
+      <label for="comment">Tell us more (optional)</label>
+      <textarea 
+        id="comment" 
+        name="comment" 
+        [(ngModel)]="comment" 
+        rows="3" 
+        placeholder="e.g. Great driver, kept in touch the whole time and arrived right on schedule!">
+      </textarea>
+    </div>
+
+    <div class="modal-actions">
+      <button class="btn btn-ghost cancel-btn" (click)="cancel()">Cancel</button>
+      <button class="btn btn-yellow confirm-btn" (click)="submit()" [disabled]="isSubmitting()">
+        {{ isSubmitting() ? 'Submitting...' : 'Submit Review' }}
+      </button>
+    </div>
+  </div>
+</div>

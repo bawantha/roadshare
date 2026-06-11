@@ -1,4 +1,4 @@
--- ROADSHARE SUPABASE SQL MIGRATION SCHEMA
+-- ROADSHARE SUPABASE SQL MIGRATION SCHEMA (UPDATED WITH ADVANCED FEATURES)
 -- Copy and run this script in the Supabase SQL Editor (https://supabase.com/dashboard)
 
 -- 1. Create Profiles Table (extends auth.users)
@@ -65,7 +65,7 @@ CREATE POLICY "Allow drivers to delete their own trips"
   ON public.trips FOR DELETE USING (auth.uid() = driver_id);
 
 
--- 3. Create Bookings Table
+-- 3. Create Bookings Table (Updated with Payment columns)
 CREATE TABLE IF NOT EXISTS public.bookings (
   id BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
   sender_id UUID REFERENCES public.profiles(id) ON DELETE CASCADE NOT NULL,
@@ -74,6 +74,8 @@ CREATE TABLE IF NOT EXISTS public.bookings (
   size TEXT NOT NULL, -- S, M, L, XL
   price INTEGER NOT NULL,
   status INTEGER DEFAULT 0 NOT NULL, -- 0: requested, 1: confirmed, 2: transit, 3: delivered, -1: declined/cancelled
+  stripe_payment_intent_id TEXT,
+  stripe_payment_status TEXT DEFAULT 'pending' NOT NULL, -- pending, escrowed, released, refunded
   created_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL
 );
 
@@ -103,7 +105,74 @@ CREATE POLICY "Allow senders and drivers to update booking status"
   );
 
 
--- 4. Setup user registration trigger profile creator
+-- 4. Create Messages (Chat) Table
+CREATE TABLE IF NOT EXISTS public.messages (
+  id BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+  booking_id BIGINT REFERENCES public.bookings(id) ON DELETE CASCADE NOT NULL,
+  sender_id UUID REFERENCES public.profiles(id) ON DELETE SET NULL,
+  content TEXT NOT NULL,
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL
+);
+
+-- Enable RLS for Messages
+ALTER TABLE public.messages ENABLE ROW LEVEL SECURITY;
+
+DROP POLICY IF EXISTS "Allow chat participants to read messages" ON public.messages;
+DROP POLICY IF EXISTS "Allow chat participants to send messages" ON public.messages;
+
+-- Messages are only visible to the sender or the driver of the booking
+CREATE POLICY "Allow chat participants to read messages" 
+  ON public.messages FOR SELECT USING (
+    EXISTS (
+      SELECT 1 FROM public.bookings b
+      JOIN public.trips t ON b.trip_id = t.id
+      WHERE b.id = booking_id AND (auth.uid() = b.sender_id OR auth.uid() = t.driver_id)
+    )
+  );
+
+CREATE POLICY "Allow chat participants to send messages" 
+  ON public.messages FOR INSERT WITH CHECK (
+    auth.uid() = sender_id AND
+    EXISTS (
+      SELECT 1 FROM public.bookings b
+      JOIN public.trips t ON b.trip_id = t.id
+      WHERE b.id = booking_id AND (auth.uid() = b.sender_id OR auth.uid() = t.driver_id)
+    )
+  );
+
+
+-- 5. Create Reviews Table
+CREATE TABLE IF NOT EXISTS public.reviews (
+  id BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+  booking_id BIGINT REFERENCES public.bookings(id) ON DELETE CASCADE UNIQUE NOT NULL,
+  reviewer_id UUID REFERENCES public.profiles(id) ON DELETE SET NULL,
+  reviewee_id UUID REFERENCES public.profiles(id) ON DELETE SET NULL,
+  rating INTEGER CHECK (rating >= 1 AND rating <= 5) NOT NULL,
+  comment TEXT,
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL
+);
+
+-- Enable RLS for Reviews
+ALTER TABLE public.reviews ENABLE ROW LEVEL SECURITY;
+
+DROP POLICY IF EXISTS "Allow public read access to reviews" ON public.reviews;
+DROP POLICY IF EXISTS "Allow senders to create reviews for drivers" ON public.reviews;
+
+CREATE POLICY "Allow public read access to reviews" 
+  ON public.reviews FOR SELECT USING (true);
+
+-- Users can only review bookings where they are the sender (reviewing the driver)
+CREATE POLICY "Allow senders to create reviews for drivers" 
+  ON public.reviews FOR INSERT WITH CHECK (
+    auth.uid() = reviewer_id AND
+    EXISTS (
+      SELECT 1 FROM public.bookings b
+      WHERE b.id = booking_id AND b.sender_id = auth.uid() AND b.status = 3 -- Must be delivered
+    )
+  );
+
+
+-- 6. Setup profile creator triggers
 CREATE OR REPLACE FUNCTION public.handle_new_user()
 RETURNS trigger AS $$
 BEGIN
@@ -118,8 +187,30 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;
 
--- Recreate trigger
+-- Recreate user trigger
 DROP TRIGGER IF EXISTS on_auth_user_created ON auth.users;
 CREATE TRIGGER on_auth_user_created
   AFTER INSERT ON auth.users
   FOR EACH ROW EXECUTE FUNCTION public.handle_new_user();
+
+
+-- 7. Trigger to automatically recalculate Profile ratings on new review
+CREATE OR REPLACE FUNCTION public.recalculate_profile_rating()
+RETURNS trigger AS $$
+BEGIN
+  UPDATE public.profiles
+  SET rating = (
+    SELECT COALESCE(ROUND(AVG(rating), 1), 5.0)
+    FROM public.reviews
+    WHERE reviewee_id = new.reviewee_id
+  )
+  WHERE id = new.reviewee_id;
+  RETURN new;
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER;
+
+-- Recreate review trigger
+DROP TRIGGER IF EXISTS on_review_added ON public.reviews;
+CREATE TRIGGER on_review_added
+  AFTER INSERT ON public.reviews
+  FOR EACH ROW EXECUTE FUNCTION public.recalculate_profile_rating();

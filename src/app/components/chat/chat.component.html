@@ -1,0 +1,58 @@
+<div class="modal-back show" (click)="close()">
+  <div class="chat-card" (click)="$event.stopPropagation()">
+    <!-- Chat Header -->
+    <div class="chat-header">
+      <div class="chat-info">
+        <h3>Chat with {{ recipientName }}</h3>
+        <p class="sub">Item: <strong>{{ bookingItem }}</strong></p>
+      </div>
+      <button class="close-btn" (click)="close()">✕</button>
+    </div>
+
+    <!-- Messages Container -->
+    <div class="chat-body" #scrollContainer>
+      @if (isLoading() && messages().length === 0) {
+        <div class="loading-state">
+          <div class="spinner"></div>
+          <p>Loading chat history...</p>
+        </div>
+      } @else {
+        @if (messages().length === 0) {
+          <div class="chat-empty">
+            <div class="bubble-icon">💬</div>
+            <p>No messages yet. Send a message to start coordinating your delivery!</p>
+          </div>
+        } @else {
+          <div class="message-list">
+            @for (msg of messages(); track msg.id) {
+              <div class="message-wrapper" [class.my-message]="isMyMessage(msg)">
+                <div class="avatar" *ngIf="!isMyMessage(msg)">
+                  {{ getSenderInitials(msg) }}
+                </div>
+                <div class="message-bubble">
+                  <div class="sender-name" *ngIf="!isMyMessage(msg)">{{ msg.sender?.name }}</div>
+                  <div class="content">{{ msg.content }}</div>
+                  <div class="time">{{ msg.created_at | date:'shortTime' }}</div>
+                </div>
+              </div>
+            }
+          </div>
+        }
+      }
+    </div>
+
+    <!-- Message Input Bar -->
+    <form class="chat-footer" (ngSubmit)="send()">
+      <input 
+        type="text" 
+        name="newMessageContent" 
+        [(ngModel)]="newMessageContent" 
+        placeholder="Type a message..." 
+        autocomplete="off"
+        required>
+      <button type="submit" class="btn btn-green send-btn" [disabled]="!newMessageContent.trim() || isSending()">
+        Send
+      </button>
+    </form>
+  </div>
+</div>
